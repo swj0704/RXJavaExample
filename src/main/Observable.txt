@@ -1,0 +1,68 @@
+Observable은 데이터 흐름에 맞게 알림을 보내 구독자가 데이터를 처리할 수 있게 함
+
+RxJava 2에서는 Observable 을 Observable, Maybe, Flowable 클래스로 구분
+
+2-1 Observable은 옵서버 패턴을 구현함
+옵서버 패턴은 객체의 상태 변화를 관찰하는 관찰자 목록을 객체에 등록
+상태변화가 있을 때마다 메서드를 호출하여 객체가 목록의 각 옵서버에게 변화를 알려줌
+라이프 사이클은 존재하지 않으며 단일 함수를 통해 변화만 알림
+
+Observable 의 세가지 알림
+
+onNext == Observable이 데이터 발행을 알림
+onComplete == 모든 데이터의 발행이 완료했음을 알림, 호출 이후 onNext 호출 불가
+onError == 어떤 이유로 에러 발생을 알림
+
+Observable은 직접 인스턴스를 생성하지 않음 => create, just 등 정적 팩토리 함수 호출
+정적 팩토리 함수
+1. create, just, from           from 은 2에서는 퇴화
+2. fromArray, fromIterable, fromCallable, fromFuture, fromPublisher
+기타 : interval, range, timer, defer
+
+just
+인자를 넣은 순서대로 발행하는 함수 (실제 발행은 subscribe 함수를 호출)
+인자의 갯수는 최대 10개이며 타입은 같아야함
+            subscribe 함수 : 동작시키기 원하는 것을 정의해두고 실행되는 시점을 조절하는 함수
+
+create
+Observable의 알림을 개발자가 직접 호출하여 발행하는 함수
+모든 데이터 발행 후에는 onComplete 함수를 호출해줘야함
+create 도 subscribe 함수를 호출해야 실제로 발행
+
+create 함수 사용시 주의사항
+1. 구독이 해지 되었을 때 콜백을 모두 해제 해야 한다.
+2. 구독을 하는 동안에만 onNext, onComplete 함수를 호출 해야 한다.
+3. 에러가 발생하면 오직 onError 이벤트로만 에러 전달 해야 한다.
+4. 배압을 직접 처리 해야 한다.
+
+from
+단일 데이터가 아닐 때 fromXXX 계열 함수 사용
+    fromArray
+    배열에 있는 데이터 처리할 때 사용
+    모든 타입은 포장 클래스로 변환하여 처리
+
+    fromIterable
+    Iterable 인터페이스를 구현한 클래스에서 Observable 객체 생성
+    대표적으로 ArrayList, ArrayBlockingQueue, HashSet, LinkedList, Stack, TreeSet, Vector 등이 있다.
+
+    fromCallable
+    Callable 인터페이스의 call 메서드를 구현하고 fromCallable 을 활용하여 RxJava와 연동
+
+    fromFuture
+    Callable과 거의 비슷하다.
+
+   fromPublisher
+   Publisher 인터페이스의 subscribe 함수를 구현하고 Observable 을 만들고 구독을 시켜준다
+   subscribe 함수를 구현할 때 onNext, onComplete 를 호출 할 수 있다.
+
+
+뜨거운 Observable
+    뜨거운 Observable 은 구독자 존재 여부와 관계 없이 데이터를 발행하는 Observable 이다.
+    단 구독자로서는 Observable 에서 발행하는 데이터를 처음부터 모두 수신할 것으로 보장할 수 없다.
+    구독한 시점부터 Observable에서 발행한 값을 받는다.
+    예 : 마우스 이벤트트,키보드 이벤트, 시스템 이벤트, 센서 데이터와 주식 가격
+    주의 사항 : 배압을 고려 해야 함
+차가운 Observable
+    차가운 Observable 은 팩토리 함수를 호출해도 subscribe 함수를 호출하여 구독하지 않으면 데이터를 발행하지 않는다.
+    구독자가 구독하면 준비된 데이터를 처음부터 발행한다.
+    예 : 웹 요청, 데이터베이스 쿼리, 파일 읽기
